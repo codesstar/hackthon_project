@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bird App Demo</title>
+    <style>
+        /* Global body styling */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #fff; /* White background for the web app outside the iPhone */
+            margin: 0;
+            font-family: 'Inter', sans-serif; /* Using Inter font */
+            overflow: hidden; /* Prevent body scroll */
+        }
+
+        /* iPhone frame styling */
+        .iphone-frame {
+            border: 20px solid #000; /* Black iPhone frame */
+            border-radius: 40px;
+            width: 320px; /* 20% smaller: 400px * 0.8 = 320px */
+            height: 560px; /* 20% smaller: 700px * 0.8 = 560px */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Hides content outside the frame */
+            background-color: #000; /* Black background for the content inside the iPhone */
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+        }
+
+        /* Main vertical scroll container */
+        .screen-container-vertical {
+            width: 100%;
+            height: calc(100% - 50px); /* Full height minus bottom menu */
+            overflow-y: auto; /* Enable vertical scrolling */
+            scroll-snap-type: y mandatory; /* Snap to vertical pages */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+
+        /* Individual vertical page (each is a snap point) */
+        .vertical-page {
+            width: 100%;
+            height: 100%; /* Each page takes full height of its parent */
+            flex-shrink: 0; /* Prevent pages from shrinking */
+            scroll-snap-align: start; /* Snap to the start of each vertical page */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box; /* Include padding in element's total size */
+            padding-bottom: 20px; /* Space for scroll indicator */
+        }
+
+        /* Horizontal scroll container for the first vertical page */
+        .horizontal-screen-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow-x: auto; /* Enable horizontal scrolling */
+            scroll-snap-type: x mandatory; /* Snap to horizontal screens */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+
+        /* Individual content screen styling (each acts as a "card") */
+        .screen {
+            flex: 0 0 100%; /* Each screen takes full width of its parent (horizontal container or vertical page) */
+            height: 100%;
+            display: flex;
+            flex-direction: column; /* Allows content to stack vertically */
+            justify-content: center;
+            align-items: center;
+            font-size: 32px; /* Adjusted font size */
+            color: #fff; /* White text for content */
+            text-align: center;
+            box-sizing: border-box; /* Include padding/border in element's total size */
+            padding: 20px; /* Add some padding for content */
+            scroll-snap-align: start; /* Snap to the start of each screen */
+            user-select: none; /* Prevent text selection during scroll */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Styling for the horizontal lines in the "ASK @JAY" screen */
+        .line-separator {
+            height: 2px;
+            background-color: #333; /* Darker grey for lines */
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border-radius: 1px; /* Slightly rounded lines */
+        }
+
+        /* Scroll indicator dots at the bottom of horizontal screens */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .scroll-indicator-dot {
+            width: 8px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .scroll-indicator-dot.active {
+            background-color: #fff; /* Solid white for active dot */
+        }
+
+        /* Floating bottom menu */
+        .bottom-menu {
+            position: absolute;
+            bottom: 0;
+            /* Center the menu bar and make it less wide */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%; /* Adjusted width */
+            height: 50px;
+            background-color: #1c1c1e; /* Dark grey for menu background */
+            color: #fff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-radius: 25px; /* More rounded corners */
+            padding: 0 10px; /* Internal padding */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px; /* Make icons easier to tap */
+            border-radius: 10px; /* Rounded corners for tap area */
+            transition: background-color 0.2s ease;
+        }
+
+        .menu-icon:active {
+            background-color: rgba(255, 255, 255, 0.1); /* Subtle press effect */
+        }
+
+        /* Profile page styling */
+        .profile-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 50px); /* Full height minus menu */
+            background-color: #000; /* Black background */
+            color: #fff;
+            padding: 20px;
+            box-sizing: border-box;
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align content to the top */
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(100%); /* Start off-screen to the right */
+        }
+
+        .profile-page.active {
+            display: flex; /* Show when active */
+            transform: translateX(0); /* Slide in */
+        }
+
+        .profile-picture {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #333; /* Placeholder for profile picture */
+            margin-bottom: 15px;
+            border: 3px solid #fff; /* White border for profile picture */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+        }
+
+        .profile-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .notification-section {
+            width: 100%;
+            padding: 15px;
+            background-color: #1c1c1e; /* Darker background for notification section */
+            border-radius: 15px;
+            margin-top: 10px;
+            text-align: left;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+
+        .notification-item {
+            font-size: 14px;
+            color: #eee;
+            line-height: 1.5;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="iphone-frame">
+        <div class="screen-container-vertical">
+            <div class="vertical-page">
+                <div class="horizontal-screen-container">
+                    <div class="screen">
+                        SUPER<br>BIRDS<br>CONQUER<br>ANTARCTICA
+                        <div class="scroll-indicator">
+                            <div class="scroll-indicator-dot active"></div>
+                            <div class="scroll-indicator-dot"></div>
+                            <div class="scroll-indicator-dot"></div>
+                            <div class="scroll-indicator-dot"></div>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        THESE<br>BIRDS<br>LIGHT<br>ASF,<br>CROSS<br>TONS OF<br>DISTANCE<br>IN A DAY.
+                        <div class="scroll-indicator">
+                            <div class="scroll-indicator-dot"></div>
+                            <div class="scroll-indicator-dot active"></div>
+                            <div class="scroll-indicator-dot"></div>
+                            <div class="scroll-indicator-dot"></div>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        <div class="profile-picture" style="background-color: transparent; border: none; font-size: 60px;">
+                            🐦
+                        </div>
+                        CRAZY<br>FAST<br>FLIGHT
+                        <div class="scroll-indicator">
+                            <div class="scroll-indicator-dot"></div>
+                            <div class="scroll-indicator-dot"></div>
+                            <div class="scroll-indicator-dot active"></div>
+                            <div class="scroll-indicator-dot"></div>
+                        </div>
+                    </div>
+                    <div class="screen">
+                        [CONTINUATION]
+                        <div class="scroll-indicator">
+                            <div class="scroll-indicator-dot"></div>
+                            <div class="scroll-indicator-dot"></div>
+                            <div class="scroll-indicator-dot"></div>
+                            <div class="scroll-indicator-dot active"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vertical-page">
+                <div class="screen" style="padding-bottom: 0;">
+                    WHY<br>DID<br>HUMANS<br>LOSE<br>THEIR<br>TAILS?
+                </div>
+            </div>
+
+            <div class="vertical-page">
+                <div class="screen" style="padding-bottom: 0;">
+                    [NEW<br>STORY]
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-menu">
+            <div class="menu-icon home-button"><i class="fas fa-home"></i></div>
+            <div class="menu-icon profile-button"><i class="fas fa-user"></i></div>
+        </div>
+
+        <div class="profile-page">
+            <div class="profile-picture">
+                👤
+            </div>
+            <h2 class="profile-name">Adam</h2>
+            <div class="notification-section">
+                <div class="notification-title">Notifications</div>
+                <div class="notification-item">ask @jay about the humans that lost their tails</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get references to DOM elements
+        const verticalScreenContainer = document.querySelector('.screen-container-vertical');
+        const horizontalScreenContainer = document.querySelector('.horizontal-screen-container');
+        const profileButton = document.querySelector('.profile-button');
+        const profilePage = document.querySelector('.profile-page');
+        const homeButton = document.querySelector('.home-button');
+        const horizontalScreens = horizontalScreenContainer.querySelectorAll('.screen');
+
+        // Define dimensions for horizontal screens
+        const numHorizontalScreens = 4;
+
+        /**
+         * Updates the active state of the scroll indicator dots for the currently visible horizontal screen.
+         * This function is called on scroll events of the horizontal container.
+         */
+        function updateHorizontalScrollIndicators() {
+            const containerWidth = horizontalScreenContainer.offsetWidth;
+            // Calculate current horizontal screen index based on scroll position
+            const currentHorizontalScreenX = Math.round(horizontalScreenContainer.scrollLeft / containerWidth);
+
+            horizontalScreens.forEach((screen, screenIndex) => {
+                const indicators = screen.querySelectorAll('.scroll-indicator-dot');
+                if (indicators.length > 0) {
+                    indicators.forEach((dot, dotIndex) => {
+                        dot.classList.toggle('active', dotIndex === currentHorizontalScreenX);
+                    });
+                }
+            });
+        }
+
+        // --- Event Listeners ---
+
+        // Listen for scroll events on the horizontal screen container to update indicators
+        horizontalScreenContainer.addEventListener('scroll', updateHorizontalScrollIndicators);
+
+        // Show profile page when profile icon is clicked
+        profileButton.addEventListener('click', () => {
+            profilePage.classList.add('active'); // Add 'active' class to slide in
+            // Hide the main screen container when profile is active
+            verticalScreenContainer.style.display = 'none';
+        });
+
+        // Hide profile page and return to main content when home button is clicked
+        homeButton.addEventListener('click', () => {
+            profilePage.classList.remove('active'); // Remove 'active' class to slide out
+            // Show the main screen container when returning from profile
+            verticalScreenContainer.style.display = 'block'; /* Use block for vertical container */
+        });
+
+        // Initial update to ensure the first horizontal screen is visible and indicators are correct
+        updateHorizontalScrollIndicators();
+    </script>
+</body>
+</html>
