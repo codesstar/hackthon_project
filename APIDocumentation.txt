@@ -1,0 +1,173 @@
+# Unknown Unknown: API Documentation
+
+This document outlines the RESTful API for the Unknown Unknown backend system.
+
+## Authentication
+
+### POST /register
+
+Register a new user.
+**Request:**
+
+```json
+{
+  "username": "john",
+  "email": "john@example.com",
+  "password": "securepass"
+}
+```
+
+**Response:** `201 Created`
+
+```json
+{
+  "msg": "User registered successfully"
+}
+```
+
+### POST /login
+
+Log in and receive a JWT.
+**Request:**
+
+```json
+{
+  "username": "john",
+  "password": "securepass"
+}
+```
+
+**Response:**
+
+```json
+{
+  "access_token": "..."
+}
+```
+
+---
+
+## Topic & Subtopic
+
+### GET /topics
+
+Fetch all available topics.
+**Response:**
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Deep Learning",
+    "description": "A book about neural networks",
+    "cover_image": "/uploaded_images/abc.png"
+  }
+]
+```
+
+### GET /subtopics?topic\_id=<id>
+
+Fetch all subtopics under a topic.
+**Response:**
+
+```json
+[
+  {
+    "id": 2,
+    "topic_id": 1,
+    "script": "This is the intro chapter...",
+    "image_url": null
+  }
+]
+```
+
+### POST /save-subtopic
+
+Save a subtopic to user's collection. Requires JWT.
+**Request:**
+
+```json
+{
+  "subtopic_id": 2
+}
+```
+
+**Response:**
+
+```json
+{
+  "msg": "Subtopic saved"
+}
+```
+
+### GET /my-subtopics
+
+Get saved subtopics for current user (JWT required).
+**Response:** Same format as `/subtopics`.
+
+---
+
+## Chat
+
+### POST /chat-with-subtopic
+
+Send a message related to a subtopic and receive GPT reply.
+**Request:**
+
+```json
+{
+  "subtopic_id": 2,
+  "user_input": "Can you summarize this?"
+}
+```
+
+**Response:**
+
+```json
+{
+  "reply": "Sure, this chapter explains..."
+}
+```
+
+---
+
+## Upload
+
+### POST /upload-image
+
+Upload a base64 encoded image.
+**Request:**
+
+```json
+{
+  "base64": "iVBORw0KGgoAAAANS..."
+}
+```
+
+**Response:**
+
+```json
+{
+  "image_url": "/uploaded_images/xyz.png"
+}
+```
+
+---
+
+## Status Codes
+
+| Code | Meaning                   |
+| ---- | ------------------------- |
+| 200  | OK                        |
+| 201  | Created                   |
+| 400  | Bad Request               |
+| 401  | Unauthorized (JWT needed) |
+| 404  | Not Found                 |
+
+## Notes
+
+* All protected routes require `Authorization: Bearer <token>` in headers.
+* All routes return JSON responses.
+* Base64 uploads are limited to image files only.
+
+This API is designed to support mobile and web frontends that enable interactive microlearning experiences.

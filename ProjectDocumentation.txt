@@ -1,0 +1,71 @@
+# Unknown Unknown: Project Documentation
+
+1. Project Overview
+
+**Unknown Unknown** is a mobile-friendly AI chatbot platform for microlearning. Inspired by feed-based content discovery apps, it allows users to browse educational content in a swipable interface — vertically for switching topics, and horizontally for exploring subtopics within each topic. It aims to empower users to learn in fragmented time using interactive, AI-generated knowledge structures.
+
+2. Use Case & User Flow
+
+* Users open the app and scroll through a feed of "topics" (e.g., a book or knowledge theme).
+* Each topic contains "subtopics" (e.g., chapters or ideas), which the user swipes through.
+* Each subtopic provides a script (text), optional image, and a chatbot interface powered by GPT-4.
+* Users can upload images (e.g., a photo of a book cover) or enter a description, and the system generates a new topic and subtopics using AI.
+
+ 3. System Architecture
+
+Backend
+
+* **Language**: Python 3
+* **Framework**: Flask
+* **Authentication**: JWT
+* **Database**: SQLite
+* **AI Provider**: OpenAI (GPT-4)
+* **File Handling**: base64 images
+
+Data Model
+
+* `User`: id, username, email, password\_hash
+* `Topic`: id, title, description, cover\_image
+* `Subtopic`: id, topic\_id, script, image\_url
+* `UserSavedSubtopics`: user\_id, subtopic\_id, created\_at
+
+4. Codebase Overview
+
+| File               | Responsibility                             |
+| ------------------ | ------------------------------------------ |
+| `app.py`           | Registers blueprints, starts the Flask app |
+| `db.py`            | Manages SQLite DB schema and connections   |
+| `auth_routes.py`   | Registration and login logic               |
+| `topic_routes.py`  | Topic and subtopic listing/saving APIs     |
+| `chat_routes.py`   | GPT-4 conversation per subtopic            |
+| `upload_routes.py` | Upload image via base64, return file path  |
+
+5. Functional Modules
+
+ 5.1 Authentication
+
+* `POST /register`
+* `POST /login`
+
+5.2 Topic/Subtopic
+
+* `GET /topics` — all topics
+* `GET /subtopics?topic_id=` — all subtopics for a topic
+* `POST /save-subtopic` — save to user collection
+* `GET /my-subtopics` — fetch saved subtopics
+
+5.3 GPT Chat
+
+* `POST /chat-with-subtopic` — Chat using context from selected subtopic
+
+5.4 Upload
+
+* `POST /upload-image` — Upload base64-encoded image and return image path
+
+6. Future Expansion
+
+* Topic generation via OCR + GPT-4
+* Feed optimization and swipe gesture logic (frontend)
+* User-generated summaries
+* Integration with a persistent cloud DB and user analytics
+
